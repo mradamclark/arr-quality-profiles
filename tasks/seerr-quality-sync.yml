@@ -1,0 +1,86 @@
+---
+# Sync the active quality profile IDs from Sonarr/Radarr into Seerr's server
+# configuration. Only runs if SEERR_URL and SEERR_API_KEY are set.
+#
+# Uses the Seerr REST API — works with any Seerr install regardless of how
+# server entries were originally created (IDs are discovered dynamically).
+#
+# Required variables (set per-call in the playbook):
+#   _seerr_url     — Seerr base URL
+#   _seerr_api_key — Seerr API key (Settings → General → API Key)
+#   _sonarr_url    — Sonarr base URL (to resolve profile ID)
+#   _sonarr_key    — Sonarr API key
+#   _radarr_url    — Radarr base URL (to resolve profile ID)
+#   _radarr_key    — Radarr API key
+
+# ── Resolve current profile IDs from Sonarr and Radarr ──────────────────────
+- name: Get Sonarr quality profiles
+  ansible.builtin.uri:
+    url: "{{ _sonarr_url }}/api/v3/qualityprofile"
+    headers:
+      X-Api-Key: "{{ _sonarr_key }}"
+  register: _sonarr_profiles
+
+- name: Set Sonarr profile ID
+  ansible.builtin.set_fact:
+    _sonarr_profile_id: "{{ (_sonarr_profiles.json | selectattr('name', 'equalto', arr_quality_profile_name) | list | first).id | int }}"
+
+- name: Get Radarr quality profiles
+  ansible.builtin.uri:
+    url: "{{ _radarr_url }}/api/v3/qualityprofile"
+    headers:
+      X-Api-Key: "{{ _radarr_key }}"
+  register: _radarr_profiles
+
+- name: Set Radarr profile ID
+  ansible.builtin.set_fact:
+    _radarr_profile_id: "{{ (_radarr_profiles.json | selectattr('name', 'equalto', arr_quality_profile_name) | list | first).id | int }}"
+
+# ── Update Seerr server configs via API ──────────────────────────────────────
+- name: Get Seerr Sonarr server configurations
+  ansible.builtin.uri:
+    url: "{{ _seerr_url }}/api/v1/settings/sonarr"
+    headers:
+      X-Api-Key: "{{ _seerr_api_key }}"
+  register: _seerr_sonarr
+
+- name: Update Sonarr active profile in Seerr
+  ansible.builtin.uri:
+    url: "{{ _seerr_url }}/api/v1/settings/sonarr/{{ item.id }}"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ _seerr_api_key }}"
+    body_format: json
+    body: "{{ item | dict2items | rejectattr('key', 'equalto', 'id') | items2dict | combine({
+        'apiKey': _sonarr_key,
+        'activeProfileId': _sonarr_profile_id,
+        'activeProfileName': arr_quality_profile_name
+      }) }}"
+    status_code: [200, 201]
+  loop: "{{ _seerr_sonarr.json }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Get Seerr Radarr server configurations
+  ansible.builtin.uri:
+    url: "{{ _seerr_url }}/api/v1/settings/radarr"
+    headers:
+      X-Api-Key: "{{ _seerr_api_key }}"
+  register: _seerr_radarr
+
+- name: Update Radarr active profile in Seerr
+  ansible.builtin.uri:
+    url: "{{ _seerr_url }}/api/v1/settings/radarr/{{ item.id }}"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ _seerr_api_key }}"
+    body_format: json
+    body: "{{ item | dict2items | rejectattr('key', 'equalto', 'id') | items2dict | combine({
+        'apiKey': _radarr_key,
+        'activeProfileId': _radarr_profile_id,
+        'activeProfileName': arr_quality_profile_name
+      }) }}"
+    status_code: [200, 201]
+  loop: "{{ _seerr_radarr.json }}"
+  loop_control:
+    label: "{{ item.name }}"

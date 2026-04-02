@@ -1,0 +1,303 @@
+---
+# Sonarr-specific configuration — loaded by tasks/arr-quality.yml at runtime.
+
+arr_service_label: Sonarr
+arr_url: "{{ sonarr_url }}"
+arr_api_key: "{{ sonarr_api_key }}"
+arr_content_type: series
+arr_cutoff_quality: "WEB 1080p"
+
+arr_allowed:
+  - SDTV
+  - "WEB 480p"
+  - HDTV-720p
+  - HDTV-1080p
+  - "WEB 720p"
+  - "WEB 1080p"
+
+arr_extra_formats:
+  - name: "CAM/TS"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "CAM or Telesync"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: true
+        fields: [{name: value, value: '(?i)\b(CAM|HDCAM|TELESYNC|HDTS|\bTS\b|TELECINE|WORKPRINT|SCR|SCREENER)\b'}]
+
+  - name: "Size: <500MB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 0.0}, {name: max, value: 0.5}]
+
+  - name: "Size: 500-600MB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 0.5}, {name: max, value: 0.6}]
+
+  - name: "Size: 600-700MB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 0.6}, {name: max, value: 0.7}]
+
+  - name: "Size: 700-800MB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 0.7}, {name: max, value: 0.8}]
+
+  - name: "Size: 800-900MB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 0.8}, {name: max, value: 0.9}]
+
+  - name: "Size: 900MB-1GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 0.9}, {name: max, value: 1.0}]
+
+  - name: "Size: 1-1.1GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.0}, {name: max, value: 1.1}]
+
+  - name: "Size: 1.1-1.2GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.1}, {name: max, value: 1.2}]
+
+  - name: "Size: 1.2-1.3GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.2}, {name: max, value: 1.3}]
+
+  - name: "Size: 1.3-1.4GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.3}, {name: max, value: 1.4}]
+
+  - name: "Size: 1.4-1.5GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.4}, {name: max, value: 1.5}]
+
+  - name: "Size: 1.5-1.6GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.5}, {name: max, value: 1.6}]
+
+  - name: "Size: 1.6-1.7GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.6}, {name: max, value: 1.7}]
+
+  - name: "Size: 1.7-1.8GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.7}, {name: max, value: 1.8}]
+
+  - name: "Size: 1.8-1.9GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.8}, {name: max, value: 1.9}]
+
+  - name: "Size: 1.9-2GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.9}, {name: max, value: 2.0}]
+
+  - name: "Size: 2-2.1GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.0}, {name: max, value: 2.1}]
+
+  - name: "Size: 2.1-2.2GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.1}, {name: max, value: 2.2}]
+
+  - name: "Size: 2.2-2.3GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.2}, {name: max, value: 2.3}]
+
+  - name: "Size: 2.3-2.4GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.3}, {name: max, value: 2.4}]
+
+  - name: "Size: 2.4-2.5GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.4}, {name: max, value: 2.5}]
+
+  - name: "Size: 2.5-3GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.5}, {name: max, value: 3.0}]
+
+  - name: "Size: 3-4GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 3.0}, {name: max, value: 4.0}]
+
+  - name: "Size: 4-6GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 4.0}, {name: max, value: 6.0}]
+
+  - name: "Size: >6GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 6.0}, {name: max, value: 300.0}]
+
+  - name: "1080p Oversized"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "1080p"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: true
+        fields: [{name: value, value: '\b1080p\b'}]
+      - name: "Size >2.5GB"
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.5}, {name: max, value: 300.0}]
+
+# Sweet spot: 500MB-1.5GB for TV episodes — size as tiebreaker, not dominant
+arr_extra_scores:
+  "CAM/TS": -10000
+  "Size: <500MB": 10
+  "Size: 500-600MB": 20
+  "Size: 600-700MB": 20
+  "Size: 700-800MB": 20
+  "Size: 800-900MB": 20
+  "Size: 900MB-1GB": 20
+  "Size: 1-1.1GB": 15
+  "Size: 1.1-1.2GB": 15
+  "Size: 1.2-1.3GB": 15
+  "Size: 1.3-1.4GB": 10
+  "Size: 1.4-1.5GB": 10
+  "Size: 1.5-1.6GB": 5
+  "Size: 1.6-1.7GB": 5
+  "Size: 1.7-1.8GB": 0
+  "Size: 1.8-1.9GB": 0
+  "Size: 1.9-2GB": -5
+  "Size: 2-2.1GB": -10
+  "Size: 2.1-2.2GB": -15
+  "Size: 2.2-2.3GB": -20
+  "Size: 2.3-2.4GB": -25
+  "Size: 2.4-2.5GB": -30
+  "Size: 2.5-3GB": -40
+  "Size: 3-4GB": -60
+  "Size: 4-6GB": -80
+  "Size: >6GB": -100
+  "1080p Oversized": -200
+
+arr_sizes:
+  HDTV-720p:    {max: 34, preferred: 30}
+  HDTV-1080p:   {max: 46, preferred: 40}
+  WEBRip-720p:  {max: 34, preferred: 30}
+  WEBDL-720p:   {max: 34, preferred: 30}
+  WEBRip-1080p: {max: 68, preferred: 55}
+  WEBDL-1080p:  {max: 68, preferred: 55}

@@ -1,0 +1,209 @@
+---
+# Configure quality profile and custom formats for a single *arr service.
+# Called by playbook.yml twice — once with vars/sonarr.yml, once with vars/radarr.yml.
+#
+# All service-specific variables (url, api_key, content_type, etc.) are loaded
+# from the service var file at the start of this task.
+
+- name: Load service vars
+  ansible.builtin.include_vars: "{{ _service_vars }}"
+
+- name: Set API connection details
+  ansible.builtin.set_fact:
+    _api_url: "{{ arr_url }}/api/v3"
+    _api_headers:
+      X-Api-Key: "{{ arr_api_key }}"
+
+- name: Wait for API to be ready
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/system/status"
+    headers: "{{ _api_headers }}"
+  register: _status
+  until: _status.status == 200
+  retries: 30
+  delay: 2
+
+# ── Custom Formats ─────────────────────────────────────────────────────────
+- name: Get existing custom formats
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/customformat"
+    headers: "{{ _api_headers }}"
+  register: _existing_cf
+
+- name: Set desired formats list
+  ansible.builtin.set_fact:
+    _desired_formats: "{{ arr_shared_custom_formats + arr_extra_formats }}"
+
+- name: Build existing format lookup by name
+  ansible.builtin.set_fact:
+    _existing_cf_by_name: "{{ _existing_cf.json | items2dict(key_name='name', value_name='id') }}"
+
+- name: Set desired format names
+  ansible.builtin.set_fact:
+    _desired_format_names: "{{ _desired_formats | map(attribute='name') | list }}"
+
+- name: Create missing custom formats
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/customformat"
+    method: POST
+    headers: "{{ _api_headers }}"
+    body_format: json
+    body: "{{ item }}"
+    status_code: [200, 201, 202]
+  loop: "{{ _desired_formats }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name not in _existing_cf_by_name
+
+- name: Update existing custom formats (sync specifications)
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/customformat/{{ _existing_cf_by_name[item.name] }}"
+    method: PUT
+    headers: "{{ _api_headers }}"
+    body_format: json
+    body: "{{ item | combine({'id': _existing_cf_by_name[item.name]}) }}"
+    status_code: [200, 202]
+  loop: "{{ _desired_formats }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name in _existing_cf_by_name
+
+- name: Delete orphaned custom formats not in config
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/customformat/{{ item.id }}"
+    method: DELETE
+    headers: "{{ _api_headers }}"
+    status_code: [200, 204]
+  loop: "{{ _existing_cf.json }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name not in _desired_format_names
+  failed_when: false
+
+- name: Refresh custom format list
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/customformat"
+    headers: "{{ _api_headers }}"
+  register: _all_cf
+
+# ── Quality Profile ────────────────────────────────────────────────────────
+- name: Set format scores
+  ansible.builtin.set_fact:
+    _scores: "{{ arr_shared_format_scores | combine(arr_extra_scores) }}"
+
+- name: Initialize format items list
+  ansible.builtin.set_fact:
+    _format_items: []
+
+- name: Build format items with scores
+  ansible.builtin.set_fact:
+    _format_items: "{{ _format_items + [{'format': item.id, 'name': item.name, 'score': _scores[item.name] | default(0) | int}] }}"
+  loop: "{{ _all_cf.json }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Get quality profiles
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/qualityprofile"
+    headers: "{{ _api_headers }}"
+  register: _profiles
+
+- name: Find target profile
+  ansible.builtin.set_fact:
+    _target: "{{ (_profiles.json | selectattr('name', 'equalto', arr_quality_profile_name) | list | first) | default(None, true) }}"
+
+# Fall back to any existing HD-1080p profile if ours doesn't exist yet
+- name: Select base profile
+  ansible.builtin.set_fact:
+    _base: "{{ _target if _target else (_profiles.json | selectattr('name', 'search', '(?i)hd.*1080') | list | first) }}"
+
+# Resolve cutoff quality name to its ID from the profile's item list.
+# Handles both groups (item.name) and individual qualities (item.quality.name).
+# Falls back to 1002 (Unknown/no cutoff) with a warning if the name isn't found.
+- name: Find cutoff quality ID
+  vars:
+    _group_match: "{{ _base['items'] | selectattr('name', 'equalto', arr_cutoff_quality) | list }}"
+    _qual_match: "{{ _base['items'] | selectattr('quality', 'defined') | selectattr('quality.name', 'equalto', arr_cutoff_quality) | list }}"
+  ansible.builtin.set_fact:
+    _cutoff_id: "{{ (_group_match | first).id if _group_match | length > 0
+                    else (_qual_match | first).quality.id if _qual_match | length > 0
+                    else 1002 }}"
+
+- name: Warn if cutoff quality not found
+  ansible.builtin.debug:
+    msg: "WARNING: arr_cutoff_quality '{{ arr_cutoff_quality }}' not found in profile items — falling back to no cutoff (1002/Unknown)"
+  when: _cutoff_id | int == 1002
+
+- name: Initialize updated items
+  ansible.builtin.set_fact:
+    _updated_items: []
+
+- name: Build profile items with correct allowed qualities
+  ansible.builtin.set_fact:
+    _updated_items: "{{ _updated_items + [_updated_item] }}"
+  loop: "{{ _base['items'] }}"
+  loop_control:
+    label: "{{ _qname }}"
+  vars:
+    _qname: "{{ item.name | default(item.quality.name, true) }}"
+    _is_allowed: "{{ _qname in arr_allowed }}"
+    _updated_subitems: "{{ item['items'] | default([]) | map('combine', {'allowed': _is_allowed}) | list }}"
+    _updated_item: "{{ item | combine({'allowed': _is_allowed, 'items': _updated_subitems}) }}"
+
+- name: Update quality profile
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/qualityprofile/{{ _base.id }}"
+    method: PUT
+    headers: "{{ _api_headers }}"
+    body_format: json
+    body: >-
+      {{ _base | combine({
+        'name': arr_quality_profile_name,
+        'upgradeAllowed': true,
+        'cutoff': _cutoff_id | int,
+        'minFormatScore': 0,
+        'cutoffFormatScore': 0,
+        'minUpgradeFormatScore': 5,
+        'items': _updated_items,
+        'formatItems': _format_items
+      }) }}
+    status_code: [200, 202]
+  register: _profile_result
+
+# ── Quality Definitions (size limits) ──────────────────────────────────────
+- name: Get quality definitions
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/qualitydefinition"
+    headers: "{{ _api_headers }}"
+  register: _qdefs
+
+- name: Update quality definition sizes
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/qualitydefinition/{{ item.id }}"
+    method: PUT
+    headers: "{{ _api_headers }}"
+    body_format: json
+    body: "{{ item | combine({'maxSize': arr_sizes[item.title].max, 'preferredSize': arr_sizes[item.title].preferred}) }}"
+    status_code: [200, 202]
+  loop: "{{ _qdefs.json }}"
+  loop_control:
+    label: "{{ item.title }}"
+  when: item.title in arr_sizes
+
+# ── Clean up profiles ──────────────────────────────────────────────────────
+- name: Refresh profiles list
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/qualityprofile"
+    headers: "{{ _api_headers }}"
+  register: _profiles_final
+
+- name: Delete unused profiles
+  ansible.builtin.uri:
+    url: "{{ _api_url }}/qualityprofile/{{ item.id }}"
+    method: DELETE
+    headers: "{{ _api_headers }}"
+    status_code: [200, 204]
+  loop: "{{ _profiles_final.json | rejectattr('id', 'equalto', _profile_result.json.id) | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+  failed_when: false

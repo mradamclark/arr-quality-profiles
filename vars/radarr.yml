@@ -1,0 +1,145 @@
+---
+# Radarr-specific configuration — loaded by tasks/arr-quality.yml at runtime.
+
+arr_service_label: Radarr
+arr_url: "{{ radarr_url }}"
+arr_api_key: "{{ radarr_api_key }}"
+arr_content_type: movie
+arr_cutoff_quality: "Bluray-1080p"
+
+arr_allowed:
+  - HDTV-720p
+  - HDTV-1080p
+  - "WEB 720p"
+  - "WEB 1080p"
+  - Bluray-720p
+  - Bluray-1080p
+
+arr_extra_formats:
+  - name: "CAM/TS"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "CAM or Telesync"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: true
+        fields: [{name: value, value: '(?i)\b(CAM|HDCAM|TELESYNC|HDTS|\bTS\b|TELECINE|WORKPRINT|SCR|SCREENER)\b'}]
+
+  - name: "Movie Size: <1GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 0.0}, {name: max, value: 1.0}]
+
+  - name: "Movie Size: 1-2GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 1.0}, {name: max, value: 2.0}]
+
+  - name: "Movie Size: 2-3GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 2.0}, {name: max, value: 3.0}]
+
+  - name: "Movie Size: 3-4GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 3.0}, {name: max, value: 4.0}]
+
+  - name: "Movie Size: 4-5GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 4.0}, {name: max, value: 5.0}]
+
+  - name: "Movie Size: 5-7GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 5.0}, {name: max, value: 7.0}]
+
+  - name: "Movie Size: 7-10GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 7.0}, {name: max, value: 10.0}]
+
+  - name: "Movie Size: 10-15GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 10.0}, {name: max, value: 15.0}]
+
+  - name: "Movie Size: >15GB"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: size
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 15.0}, {name: max, value: 300.0}]
+
+  - name: "1080p Movie Oversized"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "1080p"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: true
+        fields: [{name: value, value: '\b1080p\b'}]
+      - name: "Size >8GB"
+        implementation: SizeSpecification
+        negate: false
+        required: true
+        fields: [{name: min, value: 8.0}, {name: max, value: 300.0}]
+
+# Sweet spot: 2-5GB for 1080p movies
+arr_extra_scores:
+  "CAM/TS": -10000
+  "Movie Size: <1GB": 5           # Likely low quality but acceptable
+  "Movie Size: 1-2GB": 15         # Compact
+  "Movie Size: 2-3GB": 20         # Sweet spot starts
+  "Movie Size: 3-4GB": 20         # Sweet spot
+  "Movie Size: 4-5GB": 15         # Good
+  "Movie Size: 5-7GB": 5          # Acceptable
+  "Movie Size: 7-10GB": -20       # Getting large
+  "Movie Size: 10-15GB": -50      # Large
+  "Movie Size: >15GB": -100       # Too large
+  "1080p Movie Oversized": -150
+
+arr_sizes:
+  HDTV-720p:    {max: 34, preferred: 30}
+  WEBDL-720p:   {max: 34, preferred: 30}
+  WEBRip-720p:  {max: 34, preferred: 30}
+  Bluray-720p:  {max: 43, preferred: 38}
+  HDTV-1080p:   {max: 60, preferred: 50}
+  WEBDL-1080p:  {max: 60, preferred: 50}
+  WEBRip-1080p: {max: 60, preferred: 50}
+  Bluray-1080p: {max: 60, preferred: 50}

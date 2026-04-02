@@ -1,0 +1,22 @@
+---
+# Connection settings read from environment variables.
+# Each service is optional — its tasks are skipped if the API key is not set.
+# API keys are in each app → Settings → General → Security.
+#
+#   export SONARR_URL="http://localhost:8989"   # defaults to localhost if unset
+#   export SONARR_API_KEY="your-sonarr-api-key" # required to enable Sonarr tasks
+#
+#   export RADARR_URL="http://localhost:7878"   # defaults to localhost if unset
+#   export RADARR_API_KEY="your-radarr-api-key" # required to enable Radarr tasks
+#
+#   export SEERR_URL="http://localhost:5055"    # required to enable Seerr sync
+#   export SEERR_API_KEY="your-seerr-api-key"   # required to enable Seerr sync
+
+sonarr_url: "{{ lookup('env', 'SONARR_URL') | default('http://localhost:8989', true) }}"
+sonarr_api_key: "{{ lookup('env', 'SONARR_API_KEY') | default('', true) }}"
+
+radarr_url: "{{ lookup('env', 'RADARR_URL') | default('http://localhost:7878', true) }}"
+radarr_api_key: "{{ lookup('env', 'RADARR_API_KEY') | default('', true) }}"
+
+seerr_url: "{{ lookup('env', 'SEERR_URL') | default('', true) }}"
+seerr_api_key: "{{ lookup('env', 'SEERR_API_KEY') | default('', true) }}"

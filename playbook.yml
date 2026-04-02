@@ -1,0 +1,49 @@
+---
+# Configure Sonarr and Radarr quality profiles for Apple TV 4K direct play.
+#
+# Each service is optional — tasks are skipped if the API key env var is not set.
+# URLs default to localhost if not set. API keys enable each service.
+#
+#   export SONARR_API_KEY="..."   # enables Sonarr
+#   export RADARR_API_KEY="..."   # enables Radarr
+#   export SEERR_URL="..."        # enables Seerr sync (both URL and key required)
+#   export SEERR_API_KEY="..."
+#
+# To run only specific services:
+#   ansible-playbook playbook.yml --tags sonarr
+#   ansible-playbook playbook.yml --tags radarr
+#   ansible-playbook playbook.yml --tags seerr
+
+- name: Configure arr quality profiles
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars/connection.yml
+    - vars/shared-quality.yml
+  tasks:
+    - name: Configure Sonarr quality profile
+      tags: [sonarr]
+      ansible.builtin.include_tasks: tasks/arr-quality.yml
+      vars:
+        _service_vars: vars/sonarr.yml
+      when: sonarr_api_key != ''
+
+    - name: Configure Radarr quality profile
+      tags: [radarr]
+      ansible.builtin.include_tasks: tasks/arr-quality.yml
+      vars:
+        _service_vars: vars/radarr.yml
+      when: radarr_api_key != ''
+
+    - name: Sync quality profile IDs into Seerr
+      tags: [seerr]
+      ansible.builtin.include_tasks: tasks/seerr-quality-sync.yml
+      vars:
+        _seerr_url: "{{ seerr_url }}"
+        _seerr_api_key: "{{ seerr_api_key }}"
+        _sonarr_url: "{{ sonarr_url }}"
+        _sonarr_key: "{{ sonarr_api_key }}"
+        _radarr_url: "{{ radarr_url }}"
+        _radarr_key: "{{ radarr_api_key }}"
+      when: seerr_url != '' and seerr_api_key != ''

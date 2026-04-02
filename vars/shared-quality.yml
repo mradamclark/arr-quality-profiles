@@ -1,0 +1,208 @@
+---
+# Shared quality profile configuration for Apple TV 4K (A1842) direct play optimization.
+# Based on TRaSH Guides with custom scoring for direct play audio codecs.
+# See docs/quality-profiles.md for a full explanation of the scoring logic.
+#
+# Service-specific formats, scores, allowed qualities, and size limits
+# live in vars/sonarr.yml and vars/radarr.yml.
+
+arr_quality_profile_name: "Custom 720/1080p"
+
+# ---------------------------------------------------------------------------
+# Custom format definitions — shared between Sonarr and Radarr
+# ---------------------------------------------------------------------------
+arr_shared_custom_formats:
+  # --- Audio (direct play priority) ---
+  - name: "DD+ Atmos"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "DD+ Atmos"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(ddp|dd\+|eac3).?atmos\b'}]
+
+  - name: "DD+"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "DD+"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(ddp|dd\+|eac3)\b'}]
+      - name: "Not Atmos"
+        implementation: ReleaseTitleSpecification
+        negate: true
+        required: true
+        fields: [{name: value, value: '\batmos\b'}]
+
+  - name: "DD (AC3)"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "DD"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(dd|ac3)\b'}]
+      - name: "Not DD+"
+        implementation: ReleaseTitleSpecification
+        negate: true
+        required: true
+        fields: [{name: value, value: '\b(ddp|dd\+|eac3)\b'}]
+
+  - name: "AAC"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "AAC"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\bAAC\b'}]
+
+  - name: "DTS (Transcode)"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "DTS"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(dts|dts.?hd|dts.?ma|dts.?x)\b'}]
+
+  # --- Video (HDR/DV direct play on ATV4K) ---
+  - name: "Dolby Vision"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "DV"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(dv|dovi|dolby.?vision)\b'}]
+
+  - name: "HDR10"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "HDR10"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\bhdr10\b'}]
+
+  # --- Source/Codec preferences ---
+  - name: "WEBDL"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "WEBDL"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\bweb.?dl\b'}]
+
+  - name: "x265/HEVC"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "x265"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(x265|h\.?265|hevc)\b'}]
+
+  - name: "Proper/Repack"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "Repack"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(proper|repack)\b'}]
+
+  - name: "Multi/Dual Audio"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "Multi"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(multi|dual.?audio)\b'}]
+
+  # --- Unwanted (blocked) ---
+  - name: "BR-DISK"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "BR-DISK"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(br.?disk|bdmv|bdremux)\b'}]
+
+  - name: "AV1"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "AV1"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\bav1\b'}]
+
+  - name: "x265 (HD)"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "x265"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: true
+        fields: [{name: value, value: '\b(x265|h\.?265|hevc)\b'}]
+      - name: "720p"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: true
+        fields: [{name: value, value: '\b720p\b'}]
+
+  - name: "Hardcoded Subs"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "HC"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(hc|hardcoded|hard.?sub)\b'}]
+
+  - name: "3D"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "3D"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b3d\b'}]
+
+  - name: "LQ (Low Quality)"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "LQ"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(yify|yts|rarbg|eztv|tgx)\b'}]
+
+# ---------------------------------------------------------------------------
+# Custom format scores — shared between Sonarr and Radarr
+# Direct play audio is the primary scoring factor.
+# ---------------------------------------------------------------------------
+arr_shared_format_scores:
+  "DD+ Atmos": 30       # Direct play on ATV4K — no sound system, tiebreaker only
+  "DD+": 25             # Direct play on ATV4K
+  "DD (AC3)": 20        # Direct play on ATV4K
+  "AAC": 15             # Direct play on ATV4K
+  "Dolby Vision": 50
+  "HDR10": 25
+  "WEBDL": 75
+  "x265/HEVC": 25
+  "Proper/Repack": 5
+  "Multi/Dual Audio": -100
+  "DTS (Transcode)": -200  # Requires Plex transcode on ATV4K, but not a dealbreaker
+  "LQ (Low Quality)": -10000
+  "3D": -10000
+  "Hardcoded Subs": -10000
+  "x265 (HD)": -10000
+  "AV1": -10000
+  "BR-DISK": -10000
