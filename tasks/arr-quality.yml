@@ -119,20 +119,21 @@
 
 # Resolve cutoff quality name to its ID from the profile's item list.
 # Handles both groups (item.name) and individual qualities (item.quality.name).
-# Falls back to 1002 (Unknown/no cutoff) with a warning if the name isn't found.
+# Falls back to the existing profile cutoff with a warning if the name isn't found.
 - name: Find cutoff quality ID
   vars:
-    _group_match: "{{ _base['items'] | selectattr('name', 'equalto', arr_cutoff_quality) | list }}"
+    _group_match: "{{ _base['items'] | selectattr('name', 'defined') | selectattr('name', 'equalto', arr_cutoff_quality) | list }}"
     _qual_match: "{{ _base['items'] | selectattr('quality', 'defined') | selectattr('quality.name', 'equalto', arr_cutoff_quality) | list }}"
   ansible.builtin.set_fact:
+    _cutoff_found: "{{ _group_match | length > 0 or _qual_match | length > 0 }}"
     _cutoff_id: "{{ (_group_match | first).id if _group_match | length > 0
                     else (_qual_match | first).quality.id if _qual_match | length > 0
-                    else 1002 }}"
+                    else _base['cutoff'] }}"
 
 - name: Warn if cutoff quality not found
   ansible.builtin.debug:
-    msg: "WARNING: arr_cutoff_quality '{{ arr_cutoff_quality }}' not found in profile items — falling back to no cutoff (1002/Unknown)"
-  when: _cutoff_id | int == 1002
+    msg: "WARNING: arr_cutoff_quality '{{ arr_cutoff_quality }}' not found in profile items — keeping existing cutoff (id={{ _cutoff_id }})"
+  when: not _cutoff_found
 
 - name: Initialize updated items
   ansible.builtin.set_fact:
