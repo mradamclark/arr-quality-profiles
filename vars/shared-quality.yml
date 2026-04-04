@@ -195,6 +195,15 @@ arr_shared_custom_formats:
         required: false
         fields: [{name: value, value: '\b(yify|yts|rarbg|eztv|tgx)\b'}]
 
+  - name: "Password Required"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "Password"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(password|passwort|pass)\b|\{.{0,20}\}|\[password\]'}]
+
 # ---------------------------------------------------------------------------
 # Custom format scores — shared between Sonarr and Radarr
 #
@@ -235,4 +244,5 @@ arr_shared_format_scores:
   "Described Audio (AD)": -10000
   "x265 (HD)": -10000
   "AV1": -10000
+  "Password Required": -10000
   "BR-DISK": -10000

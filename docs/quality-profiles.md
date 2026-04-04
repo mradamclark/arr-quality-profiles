@@ -78,6 +78,7 @@ Effectively banned — a release would need impossible positive scores to downlo
 | 3D | Not useful for Apple TV |
 | LQ (Low Quality) | Known bad release groups (YIFY, YTS, etc.) |
 | Described Audio (AD) | Audio description tracks for visually impaired |
+| Password Required | Releases with password indicators in the title — SABnzbd would stall trying to unpack |
 
 ### Size Tiebreakers — Sonarr (TV Episodes)
 
