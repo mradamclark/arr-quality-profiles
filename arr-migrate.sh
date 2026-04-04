@@ -23,7 +23,7 @@ SONARR_API_KEY="${SONARR_API_KEY:-your-sonarr-api-key}"
 RADARR_URL="${RADARR_URL:-http://localhost:7878}"
 RADARR_API_KEY="${RADARR_API_KEY:-your-radarr-api-key}"
 
-PROFILE_NAME="${PROFILE_NAME:-Custom 720/1080p}"
+PROFILE_NAME="${PROFILE_NAME:-CustomProfile}"
 BATCH_SIZE="${BATCH_SIZE:-100}"
 
 # ── Prereq check ──────────────────────────────────────────────────────────────
