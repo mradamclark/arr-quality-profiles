@@ -5,7 +5,16 @@ arr_service_label: Radarr
 arr_url: "{{ radarr_url }}"
 arr_api_key: "{{ radarr_api_key }}"
 arr_content_type: movie
-arr_cutoff_quality: "Bluray-1080p"
+arr_cutoff_quality: "WEB 1080p"
+
+# SABnzbd download client priority: recent movies at normal, backlog at low.
+# Normal = 0, Low = -1 (SABnzbd priority values as used by Radarr)
+arr_download_client_recent_field: recentMoviePriority
+arr_download_client_older_field: olderMoviePriority
+arr_download_client_recent_priority: 0   # Normal
+arr_download_client_older_priority: -1   # Low
+
+arr_custom_filters: []
 
 arr_allowed:
   - HDTV-720p
@@ -106,33 +115,20 @@ arr_extra_formats:
         required: true
         fields: [{name: min, value: 15.0}, {name: max, value: 300.0}]
 
-  - name: "1080p Movie Oversized"
-    includeCustomFormatWhenRenaming: false
-    specifications:
-      - name: "1080p"
-        implementation: ReleaseTitleSpecification
-        negate: false
-        required: true
-        fields: [{name: value, value: '\b1080p\b'}]
-      - name: "Size >8GB"
-        implementation: SizeSpecification
-        negate: false
-        required: true
-        fields: [{name: min, value: 8.0}, {name: max, value: 300.0}]
-
-# Sweet spot: 2-5GB for 1080p movies
+# Sweet spot: 2-5GB for 1080p WEB-DL movies. Gentle slope above — smaller wins ties within a tier.
+# Cutoff is WEB 1080p so Radarr won't chase Bluray upgrades automatically.
 arr_extra_scores:
   "CAM/TS": -10000
-  "Movie Size: <1GB": 5           # Likely low quality but acceptable
+  "x265 (HD)": 0          # Overrides shared -10000 — quality tier ordering handles 720p vs 1080p preference
+  "Movie Size: <1GB": 5           # Compressed but watchable
   "Movie Size: 1-2GB": 15         # Compact
   "Movie Size: 2-3GB": 20         # Sweet spot starts
   "Movie Size: 3-4GB": 20         # Sweet spot
-  "Movie Size: 4-5GB": 15         # Good
-  "Movie Size: 5-7GB": 5          # Acceptable
+  "Movie Size: 4-5GB": 10         # Still good
+  "Movie Size: 5-7GB": 0          # Baseline — acceptable for longer movies
   "Movie Size: 7-10GB": -20       # Getting large
-  "Movie Size: 10-15GB": -50      # Large
-  "Movie Size: >15GB": -100       # Too large
-  "1080p Movie Oversized": -150
+  "Movie Size: 10-15GB": -50      # Too large
+  "Movie Size: >15GB": -100       # Way too large
 
 arr_sizes:
   HDTV-720p:    {max: 34, preferred: 30}

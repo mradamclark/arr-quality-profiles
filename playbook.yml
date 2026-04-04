@@ -47,3 +47,8 @@
         _radarr_url: "{{ radarr_url }}"
         _radarr_key: "{{ radarr_api_key }}"
       when: seerr_url != '' and seerr_api_key != ''
+
+    - name: Configure SABnzbd scheduling and quota
+      tags: [sabnzbd]
+      ansible.builtin.include_tasks: tasks/sabnzbd.yml
+      when: sabnzbd_api_key != ''

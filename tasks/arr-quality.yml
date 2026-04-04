@@ -112,10 +112,9 @@
   ansible.builtin.set_fact:
     _target: "{{ (_profiles.json | selectattr('name', 'equalto', arr_quality_profile_name) | list | first) | default(None, true) }}"
 
-# Fall back to any existing HD-1080p profile if ours doesn't exist yet
 - name: Select base profile
   ansible.builtin.set_fact:
-    _base: "{{ _target if _target else (_profiles.json | selectattr('name', 'search', '(?i)hd.*1080') | list | first) }}"
+    _base: "{{ _target if _target else (_profiles.json | list | first) }}"
 
 # Resolve cutoff quality name to its ID from the profile's item list.
 # Handles both groups (item.name) and individual qualities (item.quality.name).

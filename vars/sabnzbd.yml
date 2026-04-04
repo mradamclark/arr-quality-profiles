@@ -1,0 +1,22 @@
+---
+# SABnzbd scheduling and quota configuration.
+# Server configuration (usenet providers, categories) is not managed here
+# and should be configured manually in SABnzbd's settings.
+
+# Daily download quota — resets at 6am via schedule.
+# Set to "" to disable the quota.
+sabnzbd_quota_size: "500G"
+sabnzbd_quota_period: "d"
+sabnzbd_quota_resume: 0         # 0 = stay paused after hitting quota (manual/scheduled resume)
+
+# Schedule entries applied to SABnzbd.
+# Format: "enabled minute hour day_of_week action"
+#   day_of_week: 1234567 = every day, 12345 = weekdays, 67 = weekend
+# These entries REPLACE the existing schedule entirely.
+#
+# Default schedule:
+#   11:00pm — resume low priority (backlog/upgrades start downloading overnight)
+#    6:00am — pause low priority  (backlog stops, freeing bandwidth for new content)
+#    6:01am — enable quota        (re-enables the 150GB daily quota counter)
+#    6:02am — resume              (clears any quota-triggered pause so new content can download)
+sabnzbd_schedlines: "1 0 23 1234567 resume_all_low, 1 0 6 1234567 pause_all_low, 1 1 6 1234567 enable_quota, 1 2 6 1234567 resume"

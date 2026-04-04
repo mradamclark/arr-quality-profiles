@@ -1,12 +1,12 @@
 ---
 # Shared quality profile configuration for Apple TV 4K (A1842) direct play optimization.
 # Based on TRaSH Guides with custom scoring for direct play audio codecs.
-# See docs/quality-profiles.md for a full explanation of the scoring logic.
+# Applied to Sonarr and Radarr by tasks/arr-stack/arr-quality.yml.
 #
 # Service-specific formats, scores, allowed qualities, and size limits
-# live in vars/sonarr.yml and vars/radarr.yml.
+# live in vars/arr-stack/sonarr.yml and vars/arr-stack/radarr.yml.
 
-arr_quality_profile_name: "Custom 720/1080p"
+arr_quality_profile_name: "CustomProfile"
 
 # ---------------------------------------------------------------------------
 # Custom format definitions — shared between Sonarr and Radarr
@@ -19,7 +19,7 @@ arr_shared_custom_formats:
       - name: "DD+ Atmos"
         implementation: ReleaseTitleSpecification
         negate: false
-        required: false
+        required: true
         fields: [{name: value, value: '\b(ddp|dd\+|eac3).?atmos\b'}]
 
   - name: "DD+"
@@ -28,8 +28,9 @@ arr_shared_custom_formats:
       - name: "DD+"
         implementation: ReleaseTitleSpecification
         negate: false
-        required: false
-        fields: [{name: value, value: '\b(ddp|dd\+|eac3)\b'}]
+        required: true
+        # No trailing \b — matches DDP2.0, DDP5.1, EAC3, etc.
+        fields: [{name: value, value: '\b(ddp|dd\+|eac3)'}]
       - name: "Not Atmos"
         implementation: ReleaseTitleSpecification
         negate: true
@@ -42,13 +43,14 @@ arr_shared_custom_formats:
       - name: "DD"
         implementation: ReleaseTitleSpecification
         negate: false
-        required: false
+        required: true
         fields: [{name: value, value: '\b(dd|ac3)\b'}]
       - name: "Not DD+"
         implementation: ReleaseTitleSpecification
         negate: true
         required: true
-        fields: [{name: value, value: '\b(ddp|dd\+|eac3)\b'}]
+        # No trailing \b — must exclude DDP2.0, DDP5.1, etc. same as DD+ match
+        fields: [{name: value, value: '\b(ddp|dd\+|eac3)'}]
 
   - name: "AAC"
     includeCustomFormatWhenRenaming: false
@@ -166,6 +168,15 @@ arr_shared_custom_formats:
         required: false
         fields: [{name: value, value: '\b(hc|hardcoded|hard.?sub)\b'}]
 
+  - name: "Described Audio (AD)"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: "DVS/AD"
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields: [{name: value, value: '\b(dvs|descriptive.?audio|audio.?description)\b'}]
+
   - name: "3D"
     includeCustomFormatWhenRenaming: false
     specifications:
@@ -186,23 +197,42 @@ arr_shared_custom_formats:
 
 # ---------------------------------------------------------------------------
 # Custom format scores — shared between Sonarr and Radarr
-# Direct play audio is the primary scoring factor.
+#
+# Scores are tiebreakers WITHIN a quality tier (e.g. two WEB-1080p releases).
+# Quality tier ordering (HDTV-720p < HDTV-1080p < WEB 720p < WEB 1080p)
+# is handled by the quality profile and takes precedence over these scores.
+#
+# maxSize in quality definitions handles oversized downloads — if the only
+# WEB-720p available exceeds the size limit, Sonarr falls back to lower tiers.
+#
+# Within-tier score examples:
+#   WEB-1080p, DD+, 800MB  → 10+20+25+20 = 75
+#   WEB-1080p, DD (AC3), 700MB → 10+20+20+15 = 65  (same tier, clearly worse)
+#   WEB-720p,  DD+, 600MB  → 10+ 0+25+20 = 55  (lower tier, score reflects it)
 # ---------------------------------------------------------------------------
 arr_shared_format_scores:
-  "DD+ Atmos": 30       # Direct play on ATV4K — no sound system, tiebreaker only
-  "DD+": 25             # Direct play on ATV4K
-  "DD (AC3)": 20        # Direct play on ATV4K
-  "AAC": 15             # Direct play on ATV4K
-  "Dolby Vision": 50
-  "HDR10": 25
-  "WEBDL": 75
-  "x265/HEVC": 25
+  # Source: small bonus to prefer WEB-DL over WEBRip within the same quality group
+  "WEBDL": 10
+  # Video codec
+  "x265/HEVC": 5
+  # HDR/DV — nice bonus on ATV4K
+  "Dolby Vision": 20
+  "HDR10": 10
+  # Audio (direct play priority on ATV4K)
+  "DD+ Atmos": 30
+  "DD+": 25
+  "DD (AC3)": 20
+  "AAC": 15
+  # Misc
   "Proper/Repack": 5
+  # Negatives
   "Multi/Dual Audio": -100
-  "DTS (Transcode)": -200  # Requires Plex transcode on ATV4K, but not a dealbreaker
+  "DTS (Transcode)": -200  # Requires Plex transcode on ATV4K
+  # Blocklisted (never download)
   "LQ (Low Quality)": -10000
   "3D": -10000
   "Hardcoded Subs": -10000
+  "Described Audio (AD)": -10000
   "x265 (HD)": -10000
   "AV1": -10000
   "BR-DISK": -10000

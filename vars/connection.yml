@@ -11,6 +11,9 @@
 #
 #   export SEERR_URL="http://localhost:5055"    # required to enable Seerr sync
 #   export SEERR_API_KEY="your-seerr-api-key"   # required to enable Seerr sync
+#
+#   export SABNZBD_URL="http://localhost:8080"  # defaults to localhost if unset
+#   export SABNZBD_API_KEY="your-sabnzbd-api-key" # required to enable SABnzbd tasks
 
 sonarr_url: "{{ lookup('env', 'SONARR_URL') | default('http://localhost:8989', true) }}"
 sonarr_api_key: "{{ lookup('env', 'SONARR_API_KEY') | default('', true) }}"
@@ -20,3 +23,6 @@ radarr_api_key: "{{ lookup('env', 'RADARR_API_KEY') | default('', true) }}"
 
 seerr_url: "{{ lookup('env', 'SEERR_URL') | default('', true) }}"
 seerr_api_key: "{{ lookup('env', 'SEERR_API_KEY') | default('', true) }}"
+
+sabnzbd_url: "{{ lookup('env', 'SABNZBD_URL') | default('http://localhost:8080', true) }}"
+sabnzbd_api_key: "{{ lookup('env', 'SABNZBD_API_KEY') | default('', true) }}"

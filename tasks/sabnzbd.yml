@@ -1,0 +1,77 @@
+---
+# Configure SABnzbd scheduling and quota via the SABnzbd API.
+# Server/provider configuration is intentionally not managed here.
+#
+# Requires: SABNZBD_URL and SABNZBD_API_KEY environment variables.
+
+- name: Load SABnzbd vars
+  ansible.builtin.include_vars: vars/sabnzbd.yml
+
+- name: Set SABnzbd API base
+  ansible.builtin.set_fact:
+    _sabnzbd_api: "{{ sabnzbd_url }}/api"
+    _sabnzbd_key: "{{ sabnzbd_api_key }}"
+
+- name: Wait for SABnzbd to be ready
+  ansible.builtin.uri:
+    url: "{{ _sabnzbd_api }}?mode=version&apikey={{ _sabnzbd_key }}&output=json"
+  register: _sab_status
+  until: _sab_status.status == 200
+  retries: 15
+  delay: 2
+
+- name: Set quota size
+  ansible.builtin.uri:
+    url: "{{ _sabnzbd_api }}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      mode: set_config
+      section: misc
+      keyword: quota_size
+      value: "{{ sabnzbd_quota_size }}"
+      apikey: "{{ _sabnzbd_key }}"
+      output: json
+    status_code: [200]
+
+- name: Set quota period
+  ansible.builtin.uri:
+    url: "{{ _sabnzbd_api }}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      mode: set_config
+      section: misc
+      keyword: quota_period
+      value: "{{ sabnzbd_quota_period }}"
+      apikey: "{{ _sabnzbd_key }}"
+      output: json
+    status_code: [200]
+
+- name: Set quota resume behaviour
+  ansible.builtin.uri:
+    url: "{{ _sabnzbd_api }}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      mode: set_config
+      section: misc
+      keyword: quota_resume
+      value: "{{ sabnzbd_quota_resume }}"
+      apikey: "{{ _sabnzbd_key }}"
+      output: json
+    status_code: [200]
+
+- name: Set schedule
+  ansible.builtin.uri:
+    url: "{{ _sabnzbd_api }}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      mode: set_config
+      section: misc
+      keyword: schedlines
+      value: "{{ sabnzbd_schedlines }}"
+      apikey: "{{ _sabnzbd_key }}"
+      output: json
+    status_code: [200]
