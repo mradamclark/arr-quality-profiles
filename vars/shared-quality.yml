@@ -223,7 +223,7 @@ arr_shared_format_scores:
   # Source: small bonus to prefer WEB-DL over WEBRip within the same quality group
   "WEBDL": 10
   # Video codec
-  "x265/HEVC": 5
+  "x265/HEVC": -50
   # HDR/DV — nice bonus on ATV4K
   "Dolby Vision": 20
   "HDR10": 10
