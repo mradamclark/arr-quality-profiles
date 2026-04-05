@@ -222,7 +222,11 @@ arr_shared_custom_formats:
 arr_shared_format_scores:
   # Source: small bonus to prefer WEB-DL over WEBRip within the same quality group
   "WEBDL": 10
-  # Video codec
+  # Video codec: penalize x265/HEVC to prefer H.264 within the same quality tier.
+  # Apple TV 4K can hardware decode HEVC, but community x265 encodes are often
+  # 10-bit which the Plex app transcodes rather than direct plays. H.264 WEB-DL
+  # content almost always direct plays without transcoding. x265 is still
+  # downloaded as a fallback when no H.264 release exists.
   "x265/HEVC": -50
   # HDR/DV — nice bonus on ATV4K
   "Dolby Vision": 20
