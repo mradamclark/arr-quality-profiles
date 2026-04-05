@@ -21,24 +21,38 @@
   vars_files:
     - vars/connection.yml
     - vars/shared-quality.yml
+  pre_tasks:
+    - name: Load vault credentials if present
+      ansible.builtin.include_vars: "{{ playbook_dir }}/vars/vault.yml"
+      when: (playbook_dir ~ '/vars/vault.yml') is file
+      tags: always
   tasks:
     - name: Configure Sonarr quality profile
       tags: [sonarr]
-      ansible.builtin.include_tasks: tasks/arr-quality.yml
+      ansible.builtin.include_tasks:
+        file: tasks/arr-quality.yml
+        apply:
+          tags: [sonarr]
       vars:
         _service_vars: vars/sonarr.yml
       when: sonarr_api_key != ''
 
     - name: Configure Radarr quality profile
       tags: [radarr]
-      ansible.builtin.include_tasks: tasks/arr-quality.yml
+      ansible.builtin.include_tasks:
+        file: tasks/arr-quality.yml
+        apply:
+          tags: [radarr]
       vars:
         _service_vars: vars/radarr.yml
       when: radarr_api_key != ''
 
     - name: Sync quality profile IDs into Seerr
       tags: [seerr]
-      ansible.builtin.include_tasks: tasks/seerr-quality-sync.yml
+      ansible.builtin.include_tasks:
+        file: tasks/seerr-quality-sync.yml
+        apply:
+          tags: [seerr]
       vars:
         _seerr_url: "{{ seerr_url }}"
         _seerr_api_key: "{{ seerr_api_key }}"
@@ -50,5 +64,8 @@
 
     - name: Configure SABnzbd scheduling and quota
       tags: [sabnzbd]
-      ansible.builtin.include_tasks: tasks/sabnzbd.yml
+      ansible.builtin.include_tasks:
+        file: tasks/sabnzbd.yml
+        apply:
+          tags: [sabnzbd]
       when: sabnzbd_api_key != ''

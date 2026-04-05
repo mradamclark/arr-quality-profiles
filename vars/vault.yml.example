@@ -1,0 +1,22 @@
+---
+# Local vault credentials — copy to vars/vault.yml and encrypt with ansible-vault.
+# This file is gitignored. vars/vault.yml is loaded automatically by playbook.yml
+# if it exists, and takes precedence over environment variable lookups.
+#
+# Encrypt the file:
+#   ansible-vault encrypt vars/vault.yml
+#
+# Run the playbook with vault:
+#   ansible-playbook playbook.yml --ask-vault-pass
+
+sonarr_url: "http://sonarr.example.lan:8989"
+sonarr_api_key: "your-sonarr-api-key"
+
+radarr_url: "http://radarr.example.lan:7878"
+radarr_api_key: "your-radarr-api-key"
+
+seerr_url: "http://seerr.example.lan:5055"
+seerr_api_key: "your-seerr-api-key"
+
+sabnzbd_url: "http://sabnzbd.example.lan:8080/sabnzbd"
+sabnzbd_api_key: "your-sabnzbd-api-key"
